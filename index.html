@@ -1,532 +1,445 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Mini Mundo — Minions & Companhia</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mini Mundo 3D</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#86c9ff;font-family:system-ui,sans-serif}
-#game{position:fixed;inset:0}
+body{margin:0;overflow:hidden;font-family:Arial,sans-serif;background:#8ed2ff}
 canvas{display:block}
-#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;color:white;text-shadow:0 2px 4px #123}
-.panel{background:#09294ddd;border:1px solid #ffffff55;border-radius:14px;padding:9px 12px;font-weight:800;box-shadow:0 4px 14px #1235}
-#mission{font-size:12px;font-weight:600;margin-top:3px}
-#help{position:fixed;left:50%;top:12px;transform:translateX(-50%);max-width:42vw;text-align:center;color:white;background:#09294dbb;border-radius:12px;padding:8px 12px;font-size:12px;pointer-events:none}
-#start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#071c4bbb,#09294ddd);padding:20px}
-#card{max-width:420px;width:100%;background:white;border-radius:22px;padding:24px;text-align:center;box-shadow:0 20px 70px #0019}
-#card h1{margin:0 0 8px;color:#123d72;font-size:30px}
-#card p{color:#334155;line-height:1.45}
-button{border:0;border-radius:14px;background:#ffd21c;color:#172554;font-weight:900;font-size:16px;padding:13px 20px;box-shadow:0 4px 0 #c79a00;cursor:pointer}
-#controls{position:fixed;bottom:18px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;color:white;font-weight:bold;pointer-events:none;text-shadow:0 2px 4px #000}
+.panel{background:#123c70dd;border-radius:12px;padding:10px}
+#mission{font-size:12px;margin-top:5px}
+#bossbar{display:none;position:fixed;top:90px;left:15%;width:70%;background:#401b1b;color:white;text-align:center;padding:8px;border-radius:12px;font-weight:bold}
+#health{height:12px;background:#ff3434;width:100%;border-radius:8px;margin-top:5px}
+#controls{position:fixed;bottom:15px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:end;pointer-events:none}
 .pad{display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px;gap:5px;pointer-events:auto}
-.ctrl{width:48px;height:48px;padding:0;background:#09294dbb;color:white;border:1px solid #ffffff88;box-shadow:none;border-radius:13px;touch-action:none}
+button{font-weight:bold;border:0;border-radius:12px;background:#ffdc28;color:#17345b;font-size:16px;touch-action:none}
+.ctrl{background:#123c70dd;color:white;border:1px solid #ffffff88;width:48px;height:48px}
 #up{grid-column:2;grid-row:1}
 #left{grid-column:1;grid-row:2}
 #down{grid-column:2;grid-row:2}
 #right{grid-column:3;grid-row:2}
-#jump{pointer-events:auto;width:66px;height:66px;border-radius:50%;background:#ffd21c;color:#15345b}
-#hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:white;text-shadow:0 2px 4px #123;pointer-events:none;white-space:nowrap}
-@media(min-width:800px){#controls{opacity:.75}.pad .ctrl{width:42px;height:42px}#help{font-size:13px}}
+#actions{display:flex;flex-direction:column;gap:10px;pointer-events:auto;align-items:center}
+#throw{padding:14px;font-size:14px}
+#jump{width:65px;height:65px;border-radius:50%}
+#hint{position:fixed;bottom:115px;left:5%;width:90%;text-align:center;color:white;text-shadow:0 2px 4px #000;font-size:13px;pointer-events:none}
+#start{position:fixed;inset:0;background:#09294ddd;display:flex;align-items:center;justify-content:center;padding:20px}
+#card{max-width:400px;width:100%;background:white;padding:24px;border-radius:22px;text-align:center;color:#24344b}
+#card h1{color:#174b85}
+#play,#again{padding:14px 30px}
+small{line-height:1.5}
 </style>
 </head>
 <body>
-<div id="game"></div>
-
 <div id="hud">
-  <div class="panel">🍌 Bananas: <span id="score">0</span><div id="mission">Missão: colete bananas!</div></div>
-  <div class="panel">❤️ Vidas: <span id="lives">3</span><div>⏱️ <span id="timer">25</span>s</div></div>
+ <div class="panel">🍌 Bananas: <span id="score">0</span><div id="mission">Colete bananas!</div></div>
+ <div class="panel">❤️ Vidas: <span id="lives">3</span><div>⏱️ <span id="timer">60</span>s</div></div>
 </div>
 
-<div id="help">WASD / setas para andar · arraste para virar a câmera</div>
+<div id="bossbar">🐶 CHEFE YORKSHIRE
+ <div style="background:#662222;border-radius:8px;margin-top:5px">
+  <div id="health" style="width:100%"></div>
+ </div>
+</div>
+
+<div id="hint">Colete bananas por 1 minuto!</div>
 
 <div id="controls">
-  <div class="pad">
-    <button class="ctrl" id="up">▲</button>
-    <button class="ctrl" id="left">◀</button>
-    <button class="ctrl" id="down">▼</button>
-    <button class="ctrl" id="right">▶</button>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:10px;pointer-events:auto;align-items:center">
-    <button id="throw" class="ctrl" style="width:76px;height:54px;background:#ffdf2b;color:#17345b">🍌 ATIRAR</button>
-    <button id="jump">PULAR</button>
-  </div>
-</div>
-
-<div id="hint">Colete bananas em 25 segundos! Depois enfrente o Yorkshire 🐶</div>
-
-<div id="bossbar" style="display:none;position:fixed;top:100px;left:50%;transform:translateX(-50%);width:min(78vw,420px);background:#35151b;border:2px solid white;border-radius:12px;padding:5px;color:white;text-align:center;font-weight:900;text-shadow:0 1px 3px #000">
-🐶 CHEFE YORKSHIRE
-<div style="height:12px;background:#5b2020;border-radius:8px;overflow:hidden;margin-top:4px">
-<div id="healthfill" style="height:100%;width:100%;background:#ff4b4b"></div>
-</div>
+ <div class="pad">
+  <button class="ctrl" id="up">▲</button>
+  <button class="ctrl" id="left">◀</button>
+  <button class="ctrl" id="down">▼</button>
+  <button class="ctrl" id="right">▶</button>
+ </div>
+ <div id="actions">
+  <button id="throw">🍌 ATIRAR</button>
+  <button id="jump">PULAR</button>
+ </div>
 </div>
 
 <div id="start">
-  <div id="card">
-    <h1>🍌 Mini Mundo 3D</h1>
-    <p>Você tem 25 segundos para coletar bananas! Depois aparece um Yorkshire gigante. Atire bananas nele para deixá-lo pequenininho e amigável. Você tem 3 vidas.</p>
-    <p><small>Use WASD/setas ou os botões na tela. Para atirar, aperte F ou 🍌 ATIRAR. Deixe o arquivo <b>cachorro.jpg</b> junto deste index.html no GitHub.</small></p>
-    <button id="play">JOGAR</button>
-  </div>
+ <div id="card">
+  <h1>🍌 Mini Mundo 3D</h1>
+  <p>Explore a cidade e pegue bananas durante 60 segundos!</p>
+  <p>Depois enfrente o Yorkshire gigante. Você tem 3 vidas e pode jogar bananas nele até ele ficar pequenininho e amigável.</p>
+  <p><small>Para mostrar a foto do seu cachorro, envie o arquivo <b>cachorro.jpg</b> para a mesma pasta deste arquivo no GitHub.</small></p>
+  <button id="play">JOGAR</button>
+ </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 (()=>{
-const host=document.getElementById('game');
-if(!window.THREE){
- document.getElementById('card').innerHTML='<h1>Não foi possível carregar o 3D</h1><p>Confira a internet e recarregue a página.</p>';
- return;
-}
-
+const $=id=>document.getElementById(id);
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x8ed2ff);
-scene.fog=new THREE.Fog(0x8ed2ff,45,125);
+scene.fog=new THREE.Fog(0x8ed2ff,60,260);
 
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,250);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-host.appendChild(renderer.domElement);
+document.body.appendChild(renderer.domElement);
+$('start').appendChild(renderer.domElement);
+$('start').style.pointerEvents='none';
+renderer.domElement.style.pointerEvents='auto';
+$('card').style.pointerEvents='auto';
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x66855a,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.3);
-sun.position.set(-20,35,20);
-sun.castShadow=true;
-sun.shadow.mapSize.set(1024,1024);
-scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffffff,0x65804e,2));
+const light=new THREE.DirectionalLight(0xffffff,2);
+light.position.set(-15,30,15);
+light.castShadow=true;
+scene.add(light);
 
-const mat=(color,rough=.8,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
-const M={
- grass:mat(0x68b957),road:mat(0x555d68),side:mat(0xe3d6b6),
- yellow:mat(0xffcc19),blue:mat(0x1766bb),black:mat(0x171a22),
- silver:mat(0xb9c5cc,.35,.65),white:mat(0xffffff),skin:mat(0xf0b99b),
- hair:mat(0x57251e),hair2:mat(0x9a3c32),olive:mat(0x555b39),
- red:mat(0xd8493e),glass:mat(0x79c9ec,.2,.25),trunk:mat(0x815332),
- leaf:mat(0x25844b),banana:mat(0xffdc24),
- building:mat(0xf1a94c),building2:mat(0x61b5db),building3:mat(0xe67d68)
-};
+const material=c=>new THREE.MeshStandardMaterial({color:c,roughness:.8});
+const yellow=material(0xffcc19),blue=material(0x1766bb),
+ black=material(0x17191c),silver=material(0xb6c5ce),
+ white=material(0xffffff),green=material(0x65b957),
+ road=material(0x535b65),trunk=material(0x815332),
+ leaves=material(0x25844b),glass=material(0x79c9ec),
+ skin=material(0xf0b99b),hair=material(0x7b3929),
+ hairLight=material(0xa74b38),olive=material(0x555b39),
+ bananaMat=material(0xffdc24);
 
-function mesh(geo,material,parent,x=0,y=0,z=0){
- const o=new THREE.Mesh(geo,material);
+function add(geo,mat,parent,x=0,y=0,z=0){
+ const o=new THREE.Mesh(geo,mat);
  o.position.set(x,y,z);
- o.castShadow=true;
- o.receiveShadow=true;
- if(parent)parent.add(o);
- return o;
+ o.castShadow=true;o.receiveShadow=true;
+ parent.add(o);return o;
 }
-function box(parent,x,y,z,w,h,d,material){
- return mesh(new THREE.BoxGeometry(w,h,d),material,parent,x,y,z);
+function box(p,x,y,z,w,h,d,m){
+ return add(new THREE.BoxGeometry(w,h,d),m,p,x,y,z);
 }
-function sphere(parent,x,y,z,sx,sy,sz,material){
- return mesh(new THREE.SphereGeometry(1,16,12),material,parent,x,y,z).scale.set(sx,sy,sz);
+function ball(p,x,y,z,sx,sy,sz,m){
+ const o=add(new THREE.SphereGeometry(1,20,16),m,p,x,y,z);
+ o.scale.set(sx,sy,sz);return o;
 }
-function cyl(parent,x,y,z,rt,rb,h,material,seg=16){
- return mesh(new THREE.CylinderGeometry(rt,rb,h,seg),material,parent,x,y,z);
+function cylinder(p,x,y,z,rt,rb,h,m){
+ return add(new THREE.CylinderGeometry(rt,rb,h,16),m,p,x,y,z);
 }
 
-const ground=mesh(new THREE.PlaneGeometry(220,220),M.grass,scene,0,-.12,0);
+/* CIDADE E RUA */
+const ground=add(new THREE.PlaneGeometry(100,420),green,scene,0,-.15,0);
 ground.rotation.x=-Math.PI/2;
-ground.receiveShadow=true;
+box(scene,0,-.04,0,10,.15,420,road);
+box(scene,-5.2,0,0,.4,.05,420,material(0xe6d6b5));
+box(scene,5.2,0,0,.4,.05,420,material(0xe6d6b5));
 
-box(scene,0,-.02,0,10,.12,220,M.road);
-box(scene,0,.01,0,10,.03,220,M.side);
-
-for(let x of [-3.2,3.2]){
- for(let z=-100;z<110;z+=8){
-  box(scene,x,.04,z,.12,.035,2.4,M.white);
- }
+for(let z=-205;z<210;z+=8){
+ box(scene,0,.04,z,.12,.03,2,white);
 }
-
-for(let z=-90;z<100;z+=18){
- for(let side of [-1,1]){
-  let x=side*(8+Math.random()*3);
-  let w=4+Math.random()*3;
-  let h=5+Math.random()*9;
-  let d=5+Math.random()*4;
-  let bm=[M.building,M.building2,M.building3][Math.floor(Math.random()*3)];
-  box(scene,x,h/2,z,w,h,d,bm);
-  for(let yy=1.6;yy<h-.8;yy+=1.7){
-   for(let xx=-w/2+.65;xx<w/2-.3;xx+=1.15){
-    box(scene,x+xx,yy,z+d/2+.03,.48,.65,.06,M.glass);
+for(let z=-195;z<205;z+=17){
+ for(const side of [-1,1]){
+  const x=side*(8+Math.random()*2);
+  const w=4+Math.random()*3,h=5+Math.random()*9,d=5;
+  const colors=[0xf1a94c,0x61b5db,0xe67d68,0xd9d7bd];
+  const wall=material(colors[Math.floor(Math.random()*colors.length)]);
+  box(scene,x,h/2,z,w,h,d,wall);
+  for(let yy=1.5;yy<h-.5;yy+=1.6){
+   for(let xx=-w/2+.6;xx<w/2-.3;xx+=1.1){
+    box(scene,x+xx,yy,z+d/2+.04,.45,.6,.05,glass);
    }
   }
-  box(scene,x,h+.1,z,w+.3,.25,d+.3,M.white);
+  box(scene,x,h+.1,z,w+.2,.2,d+.2,white);
  }
 }
-
 function tree(x,z){
- cyl(scene,x,.8,z,.22,.35,1.6,M.trunk);
- sphere(scene,x,2,z,1.05,1.35,1.05,M.leaf);
- sphere(scene,x-.5,2.4,z+.1,.75,.8,.75,M.leaf);
+ cylinder(scene,x,.8,z,.2,.3,1.6,trunk);
+ ball(scene,x,2,z,1,1.25,1,leaves);
+ ball(scene,x-.4,2.4,z,.7,.8,.7,leaves);
 }
-for(let z=-95;z<100;z+=10){
- tree(-7.5,z);
- tree(7.5,z+4);
+for(let z=-200;z<205;z+=10){
+ tree(-7.5,z);tree(7.5,z+4);
 }
 
-// Personagem principal: Minion
+/* MINION ARREDONDADO */
 const player=new THREE.Group();
 scene.add(player);
-cyl(player,0,1.25,0,.55,.55,1.5,M.yellow,24);
-sphere(player,0,1.95,0,.54,.52,.5,M.yellow);
-box(player,0,.72,0,.9,.62,.58,M.blue);
-box(player,0,.99,.31,.82,.12,.08,M.blue);
 
-for(let x of [-.22,.22]){
- cyl(player,x,.28,0,.14,.14,.42,M.black);
- box(player,x,.08,.03,.22,.12,.36,M.black);
-}
-for(let x of [-.66,.66]){
- cyl(player,x,1.1,0,.1,.1,.5,M.black);
- sphere(player,x,1.35,0,.13,.16,.13,M.black);
-}
-cyl(player,0,2.02,.44,.31,.31,.12,M.silver,24);
-sphere(player,0,2.02,.51,.235,.235,.07,M.white);
-sphere(player,0,2.02,.575,.105,.105,.035,mat(0x5b321d));
-sphere(player,0,2.02,.60,.047,.047,.02,M.black);
-box(player,0,1.52,.45,.26,.08,.05,M.black);
+ball(player,0,1.25,0,.62,.94,.52,yellow);
+ball(player,0,.82,.25,.52,.48,.3,blue);
+box(player,0,1.08,.47,.85,.44,.13,blue);
+box(player,0,1.31,.48,.22,.1,.06,blue);
 
-// Personagem da parceira
+for(const x of [-.33,.33]){
+ box(player,x,1.39,.44,.12,.45,.08,blue);
+ ball(player,x,1.15,.5,.09,.09,.04,silver);
+ cylinder(player,x,.34,0,.14,.14,.42,blue);
+ ball(player,x,.12,.1,.22,.12,.29,black);
+ cylinder(player,x*1.9,1.05,0,.12,.13,.48,yellow);
+ ball(player,x*1.9,.79,.04,.16,.13,.16,black);
+}
+
+// Óculos com dois olhos
+box(player,0,1.98,.45,1,.13,.12,black);
+for(const x of [-.24,.24]){
+ const ring=add(new THREE.TorusGeometry(.29,.07,12,28),silver,player,x,1.94,.5);
+ ball(player,x,1.94,.49,.25,.25,.12,white);
+ ball(player,x+.025,1.94,.595,.11,.115,.045,material(x<0?0x938037:0x9b582f));
+ ball(player,x+.025,1.94,.63,.052,.055,.022,black);
+ ball(player,x+.045,1.98,.65,.022,.022,.012,white);
+}
+const smile=add(new THREE.TorusGeometry(.15,.018,8,20,Math.PI),black,player,0,1.61,.51);
+smile.rotation.z=Math.PI;
+
+/* PARCEIRA */
 const partner=new THREE.Group();
 scene.add(partner);
 partner.position.set(2,0,-3);
-const body=new THREE.Group();
-partner.add(body);
+const person=new THREE.Group();
+partner.add(person);
 
-sphere(body,0,1.02,0,.43,.48,.32,M.olive);
-sphere(body,0,1.34,0,.38,.26,.3,M.olive);
-box(body,-.28,1.12,.02,.13,.48,.2,M.black);
-box(body,.28,1.12,.02,.13,.48,.2,M.black);
-cyl(body,-.19,.45,0,.12,.14,.62,M.black);
-cyl(body,.19,.45,0,.12,.14,.62,M.black);
-box(body,-.19,.12,.04,.24,.12,.34,M.black);
-box(body,.19,.12,.04,.24,.12,.34,M.black);
-
-sphere(body,0,1.86,.02,.36,.39,.32,M.skin);
-sphere(body,0,2.17,-.08,.4,.3,.35,M.hair);
-sphere(body,-.35,1.66,-.02,.17,.75,.2,M.hair);
-sphere(body,.35,1.66,-.02,.17,.75,.2,M.hair);
-sphere(body,-.39,1.28,.0,.13,.34,.15,M.hair2);
-sphere(body,.39,1.3,.0,.13,.34,.15,M.hair2);
-sphere(body,-.13,1.91,.305,.09,.045,.035,M.black);
-sphere(body,.13,1.91,.305,.09,.045,.035,M.black);
-sphere(body,-.13,1.91,.335,.034,.035,.018,M.white);
-sphere(body,.13,1.91,.335,.034,.035,.018,M.white);
-sphere(body,0,1.81,.34,.045,.085,.035,M.skin);
-sphere(body,0,1.7,.33,.13,.045,.035,mat(0x9c5557));
-
-function ring(parent,x,y,z,rad){
- return mesh(new THREE.TorusGeometry(rad,.018,6,12),M.silver,parent,x,y,z);
+ball(person,0,1.12,0,.4,.48,.3,olive);
+ball(person,0,1.86,0,.35,.38,.31,skin);
+ball(person,0,2.15,-.08,.4,.29,.35,hair);
+ball(person,-.34,1.65,-.02,.14,.68,.18,hair);
+ball(person,.34,1.65,-.02,.14,.68,.18,hair);
+ball(person,-.37,1.3,0,.12,.35,.15,hairLight);
+ball(person,.37,1.3,0,.12,.35,.15,hairLight);
+for(const x of [-.13,.13]){
+ ball(person,x,1.9,.28,.075,.04,.025,black);
+ ball(person,x,1.91,.31,.025,.025,.012,white);
 }
-ring(body,-.065,1.79,.375,.045);
-ring(body,.07,1.79,.375,.035);
-sphere(body,-.37,1.62,.08,.045,.07,.04,M.silver);
-sphere(body,.37,1.62,.08,.045,.07,.04,M.silver);
-cyl(body,0,1.42,.24,.025,.025,.16,M.silver);
-for(let i=0;i<5;i++){
- sphere(body,(i-2)*.055,1.37,.27,.018,.018,.018,M.silver);
+ball(person,0,1.78,.3,.04,.07,.03,skin);
+ball(person,0,1.68,.29,.12,.025,.025,material(0x9c5557));
+for(const x of [-.19,.19]){
+ cylinder(person,x,.43,0,.12,.13,.62,black);
+ box(person,x,.1,.05,.23,.12,.32,black);
+ cylinder(person,x*2.5,1.02,0,.09,.1,.43,skin);
 }
-sphere(body,-.17,2.06,.2,.18,.2,.16,M.hair2);
-sphere(body,.08,2.08,.22,.2,.18,.15,M.hair);
+box(person,-.28,1.1,.04,.12,.45,.18,black);
+box(person,.28,1.1,.04,.12,.45,.18,black);
+partner.scale.set(.8,.9,.8);
 
-for(let x of [-.49,.49]){
- cyl(body,x,1.0,0,.09,.11,.46,M.skin);
- sphere(body,x,1.22,.02,.11,.12,.11,M.skin);
-}
-partner.scale.set(.78,.88,.78);
-
-// Bananas colecionáveis
+/* BANANAS */
 const bananas=[];
-function banana(x,z){
- let g=new THREE.Group();
- scene.add(g);
- g.position.set(x,.65,z);
- cyl(g,0,0,0,.13,.13,.28,M.banana,10).rotation.z=.55;
- sphere(g,.08,.13,0,.11,.16,.1,M.banana);
- g.userData.baseY=.65;
+function makeBanana(x,z){
+ const g=new THREE.Group();
+ scene.add(g);g.position.set(x,.7,z);
+ cylinder(g,0,0,0,.12,.12,.28,bananaMat);
+ ball(g,.06,.12,0,.11,.15,.1,bananaMat);
  bananas.push(g);
 }
-for(let z=-85;z<95;z+=7){
- banana((Math.random()-.5)*5,z+(Math.random()-.5)*2);
+for(let z=-180;z<175;z+=5){
+ makeBanana((Math.random()-.5)*4.5,z);
 }
 
-function minionNPC(x,z){
- let g=new THREE.Group();
- scene.add(g);
- g.position.set(x,0,z);
- cyl(g,0,1,0,.34,.34,1.2,M.yellow);
- box(g,0,.55,0,.58,.45,.42,M.blue);
- cyl(g,0,1.45,.25,.22,.22,.1,M.silver);
- sphere(g,0,1.45,.31,.15,.15,.05,M.white);
- sphere(g,0,1.45,.35,.07,.07,.03,M.black);
- cyl(g,-.14,.18,0,.1,.1,.28,M.black);
- cyl(g,.14,.18,0,.1,.1,.28,M.black);
- return g;
-}
-for(let i=0;i<9;i++){
- minionNPC((i%2?1:-1)*(6+Math.random()*3),-70+i*17);
-}
+/* YORKSHIRE: FOTO NO FINAL DA RUA */
+let boss=null,bossPlane=null;
+const loader=new THREE.TextureLoader();
+const dogTexture=loader.load('cachorro.jpg',undefined,undefined,()=>{
+ console.warn('Não foi possível carregar cachorro.jpg. Confira o nome do arquivo.');
+});
+dogTexture.colorSpace=THREE.SRGBColorSpace;
+const dogMaterial=new THREE.MeshBasicMaterial({map:dogTexture,side:THREE.DoubleSide,transparent:false});
 
-let score=0,keys={},mobile={forward:0,turn:0},yaw=0,velY=0,onGround=true,started=false;
-let phase='collect',timeLeft=25,lives=3,bossHealth=8,lastSecond=0,boss=null,projectiles=[],invulnerable=0;
-
-const livesEl=document.getElementById('lives');
-const timerEl=document.getElementById('timer');
-const bossbar=document.getElementById('bossbar');
-const healthfill=document.getElementById('healthfill');
-const hint=document.getElementById('hint');
-const scoreEl=document.getElementById('score');
-const mission=document.getElementById('mission');
-
-function updateScore(){
- scoreEl.textContent=score;
- mission.textContent=phase==='collect'?`Colete bananas! (${score})`:phase==='boss'?'Derrote o Yorkshire!':'Final feliz! 💛';
-}
-function updateLives(){
- livesEl.textContent=lives;
+function createBoss(){
+ if(boss)return;
+ boss=new THREE.Group();
+ scene.add(boss);
+ boss.position.set(0,0,-190);
+ bossPlane=add(new THREE.PlaneGeometry(13,15),dogMaterial,boss,0,7.5,0);
+ $('bossbar').style.display='block';
+ $('hint').textContent='Atire bananas no Yorkshire gigante! Use F ou ATIRAR.';
 }
 
-function spawnBoss(){
- phase='boss';
- bossHealth=8;
- bossbar.style.display='block';
- hint.textContent='Atire bananas no Yorkshire! Aperte F ou 🍌 ATIRAR.';
+/* ESTADO DO JOGO */
+let score=0,lives=3,timeLeft=60,phase='collect';
+let started=false,startTime=0,lastHit=0;
+const keys={};
+const mobile={};
+let jumpY=0,jumpSpeed=0;
+const shots=[];
+let hp=8;
 
- const group=new THREE.Group();
- scene.add(group);
- group.position.set(player.position.x,0,player.position.z-13);
-
- // Carrega a foto do Yorkshire como imagem do chefe.
- const loader=new THREE.TextureLoader();
- loader.load('./cachorro.jpg',tex=>{
-  tex.colorSpace=THREE.SRGBColorSpace;
-  const material=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide});
-  const plane=new THREE.Mesh(new THREE.PlaneGeometry(7.2,9.2),material);
-  plane.position.y=4.6;
-  group.add(plane);
-  group.userData.plane=plane;
- },undefined,()=>{
-  hint.textContent='Não encontrei cachorro.jpg. Confira o nome do arquivo no GitHub.';
- });
- boss=group;
+function refresh(){
+ $('score').textContent=score;
+ $('lives').textContent=lives;
+ $('timer').textContent=timeLeft;
+ $('mission').textContent=phase==='collect'?'Colete bananas!':
+ phase==='boss'?'Derrote o Yorkshire!':'Missão concluída!';
 }
-
 function throwBanana(){
  if(!started||phase!=='boss'||score<=0||!boss)return;
  score--;
- updateScore();
-
- const shot=new THREE.Group();
- scene.add(shot);
- shot.position.set(player.position.x,1.7,player.position.z);
- const yellow=mat(0xffd21c);
- cyl(shot,0,0,0,.13,.13,.3,yellow,10).rotation.z=.55;
-
- const start=shot.position.clone();
- const end=boss.position.clone();
- end.y=4;
- projectiles.push({obj:shot,start,end,progress:0});
+ refresh();
+ const o=add(new THREE.SphereGeometry(.18,12,10),bananaMat,scene,
+ player.position.x,1.8,player.position.z);
+ shots.push({o,t:0});
 }
-
-function winBoss(){
+function win(){
  phase='ending';
- bossbar.style.display='none';
- hint.textContent='O Yorkshire ficou pequenininho e virou amigo! 🐶💛';
-
+ $('bossbar').style.display='none';
+ $('hint').textContent='O Yorkshire ficou pequenininho! Final feliz! 💛';
  if(boss){
-  boss.scale.set(.22,.22,.22);
-  boss.position.set(partner.position.x+.45,.05,partner.position.z-.2);
-  if(boss.userData.plane)boss.userData.plane.position.y=4.6;
+  boss.scale.set(.23,.23,.23);
+  boss.position.set(partner.position.x+.5,.05,partner.position.z-.2);
+  boss.rotation.y=0;
  }
- mission.textContent='Você conseguiu! Ela pegou o cachorrinho! 💛';
-
- const card=document.getElementById('card');
- card.innerHTML='<h1>🐶💛 Final feliz!</h1><p>O Yorkshire agora é pequenininho e sua parceira pode pegar ele no colo. Missão cumprida!</p><button id="again">JOGAR DE NOVO</button>';
- document.getElementById('start').style.display='flex';
- document.getElementById('again').onclick=()=>location.reload();
+ const card=$('card');
+ card.innerHTML='<h1>🐶💛 Final feliz!</h1><p>Você venceu! O Yorkshire ficou pequenininho e agora pode ficar no colo da sua parceira.</p><button id="again">JOGAR NOVAMENTE</button>';
+ $('start').style.display='flex';
+ $('start').style.pointerEvents='auto';
+ $('again').onclick=()=>location.reload();
+}
+function damage(){
+ hp--;
+ $('health').style.width=Math.max(0,hp/8*100)+'%';
+ if(hp<=0)win();
 }
 
-function movePartner(t){
- partner.position.x=player.position.x+Math.sin(t*.8)*1.6+1.8;
- partner.position.z=player.position.z-1.6+Math.cos(t*.8)*.5;
- partner.rotation.y=player.rotation.y+.2;
- body.position.y=Math.abs(Math.sin(t*5))*.035;
+/* MOVIMENTAÇÃO: SETAS MOVEM DIRETAMENTE NOS QUATRO SENTIDOS */
+function move(dir){
+ if(!started)return;
+ const speed=.16;
+ if(dir==='up'){player.position.z-=speed;player.rotation.y=0}
+ if(dir==='down'){player.position.z+=speed;player.rotation.y=Math.PI}
+ if(dir==='left'){player.position.x-=speed;player.rotation.y=-Math.PI/2}
+ if(dir==='right'){player.position.x+=speed;player.rotation.y=Math.PI/2}
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-4.6,4.6);
+ player.position.z=THREE.MathUtils.clamp(player.position.z,-185,205);
 }
+function bindMove(id,dir){
+ const el=$(id);
+ let interval=null;
+ el.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  el.setPointerCapture(e.pointerId);
+  move(dir);
+  interval=setInterval(()=>move(dir),16);
+ });
+ function stop(){
+  if(interval){clearInterval(interval);interval=null}
+ }
+ el.addEventListener('pointerup',stop);
+ el.addEventListener('pointercancel',stop);
+ el.addEventListener('lostpointercapture',stop);
+}
+bindMove('up','up');
+bindMove('down','down');
+bindMove('left','left');
+bindMove('right','right');
 
-function animate(tms){
+addEventListener('keydown',e=>{
+ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
+ keys[e.code]=true;
+ if(e.code==='KeyF')throwBanana();
+ if(e.code==='Space'&&started&&jumpY===0)jumpSpeed=.19;
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+$('throw').addEventListener('click',throwBanana);
+$('jump').addEventListener('pointerdown',e=>{
+ e.preventDefault();
+ if(started&&jumpY===0)jumpSpeed=.19;
+});
+
+$('play').onclick=()=>{
+ started=true;
+ startTime=performance.now();
+ $('start').style.display='none';
+ $('hint').textContent='Colete bananas durante 1 minuto!';
+};
+
+/* CÂMERA, COLETA E ANIMAÇÃO */
+let previous=performance.now();
+function animate(now){
  requestAnimationFrame(animate);
- const t=tms*.001;
+ const dt=Math.min((now-previous)/16.67,2);
+ previous=now;
+ const t=now*.001;
 
  if(started){
+  if(keys.ArrowUp||keys.KeyW)move('up');
+  if(keys.ArrowDown||keys.KeyS)move('down');
+  if(keys.ArrowLeft||keys.KeyA)move('left');
+  if(keys.ArrowRight||keys.KeyD)move('right');
+
+  if(jumpSpeed!==0||jumpY>0){
+   jumpY+=jumpSpeed*dt;
+   jumpSpeed-=.012*dt;
+   if(jumpY<=0){jumpY=0;jumpSpeed=0}
+  }
+  player.position.y=jumpY;
+
+  // A parceira acompanha o personagem.
+  partner.position.x=player.position.x+1.6;
+  partner.position.z=player.position.z+1.5;
+  person.position.y=Math.abs(Math.sin(t*5))*.025;
+
   if(phase==='collect'){
-   const sec=Math.floor(t)-lastSecond;
-   if(sec>0){
-    lastSecond=Math.floor(t);
-    timeLeft=Math.max(0,25-Math.floor(t-startTime));
-    timerEl.textContent=timeLeft;
-    if(timeLeft<=0)spawnBoss();
+   timeLeft=Math.max(0,60-Math.floor((now-startTime)/1000));
+   if(timeLeft<=0){
+    phase='boss';
+    createBoss();
+   }
+  }
+
+  for(let i=bananas.length-1;i>=0;i--){
+   const b=bananas[i];
+   b.rotation.y+=.035*dt;
+   b.position.y=.7+Math.sin(t*3+i)*.1;
+   if(Math.hypot(b.position.x-player.position.x,b.position.z-player.position.z)<1.15){
+    scene.remove(b);
+    bananas.splice(i,1);
+    score++;
    }
   }
 
   if(phase==='boss'&&boss){
-   const dx=player.position.x-boss.position.x;
-   const dz=player.position.z-boss.position.z;
-   const dist=Math.hypot(dx,dz);
-
-   if(dist>5){
-    boss.position.x+=dx/dist*.025;
-    boss.position.z+=dz/dist*.025;
-   }
-
-   if(dist<3.2&&t>invulnerable){
+   // O chefe se aproxima lentamente pela rua.
+   if(boss.position.z<player.position.z-7)boss.position.z+=.018*dt;
+   if(now-lastHit>1800&&Math.abs(boss.position.z-player.position.z)<3.5){
     lives--;
-    updateLives();
-    invulnerable=t+1.8;
-    player.position.z+=2.5;
-
+    lastHit=now;
     if(lives<=0){
      lives=3;
-     updateLives();
-     hint.textContent='Você perdeu uma rodada! Continue tentando!';
+     $('hint').textContent='Você perdeu uma vida! Continue tentando.';
     }
    }
   }
 
-  for(let i=projectiles.length-1;i>=0;i--){
-   const p=projectiles[i];
-   p.progress+=.045;
-   const q=Math.min(1,p.progress);
-   p.obj.position.lerpVectors(p.start,p.end,q);
-   p.obj.position.y+=Math.sin(q*Math.PI)*1.7;
-
-   if(q>=1){
-    scene.remove(p.obj);
-    projectiles.splice(i,1);
-    if(phase==='boss'&&boss){
-     bossHealth--;
-     healthfill.style.width=(bossHealth/8*100)+'%';
-     if(bossHealth<=0)winBoss();
+  for(let i=shots.length-1;i>=0;i--){
+   const s=shots[i];
+   s.t+=.035*dt;
+   if(boss&&phase==='boss'){
+    const target=new THREE.Vector3(boss.position.x,5,boss.position.z);
+    s.o.position.lerp(target,.12*dt);
+    if(s.o.position.distanceTo(target)<1.2){
+     scene.remove(s.o);
+     shots.splice(i,1);
+     damage();
+     continue;
     }
+   }else{
+    s.o.position.z-=.7*dt;
+   }
+   if(s.t>35){
+    scene.remove(s.o);
+    shots.splice(i,1);
    }
   }
-
-  const f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+mobile.forward;
-  const turn=(keys.KeyA||keys.ArrowLeft?1:0)-(keys.KeyD||keys.ArrowRight?1:0)+mobile.turn;
-
-  yaw+=turn*2.1*.016;
-  player.rotation.y=yaw;
-
-  const speed=(keys.ShiftLeft?7:4.5);
-  player.position.x+=Math.sin(yaw)*f*speed*.016;
-  player.position.z-=Math.cos(yaw)*f*speed*.016;
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-5.1,5.1);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-100,100);
-
-  if(!onGround){
-   velY-=16*.016;
-   player.position.y+=velY*.016;
-   if(player.position.y<=0){
-    player.position.y=0;
-    velY=0;
-    onGround=true;
-   }
-  }
-
-  player.position.y=f?Math.abs(Math.sin(t*10))*.035:0;
-  player.rotation.z=turn*.045;
-  movePartner(t);
-
-  for(let i=bananas.length-1;i>=0;i--){
-   const b=bananas[i];
-   b.rotation.y+=.025;
-   b.position.y=b.userData.baseY+Math.sin(t*2+i)*.12;
-
-   if(b.position.distanceTo(player.position.clone().setY(.65))<1.35){
-    scene.remove(b);
-    bananas.splice(i,1);
-    score++;
-    updateScore();
-   }
-  }
+  refresh();
  }
 
- const target=new THREE.Vector3(player.position.x,1.25,player.position.z);
- const back=new THREE.Vector3(Math.sin(yaw)*7,4.2,Math.cos(yaw)*7);
- camera.position.lerp(target.clone().add(back),.09);
+ const target=new THREE.Vector3(player.position.x,1.2+player.position.y,player.position.z);
+ const camTarget=new THREE.Vector3(player.position.x,4.2,player.position.z+7.5);
+ camera.position.lerp(camTarget,.12);
  camera.lookAt(target);
  renderer.render(scene,camera);
 }
-
-let startTime=0;
+refresh();
 requestAnimationFrame(animate);
-
-addEventListener('keydown',e=>{
- keys[e.code]=true;
- if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
- if(e.code==='Space'&&onGround&&started){velY=6;onGround=false}
- if(e.code==='KeyF')throwBanana();
-});
-addEventListener('keyup',e=>keys[e.code]=false);
-
-function bind(id,fn){
- const el=document.getElementById(id);
- el.addEventListener('pointerdown',e=>{
-  e.preventDefault();
-  fn(true);
-  el.setPointerCapture?.(e.pointerId);
- });
- ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>{
-  el.addEventListener(ev,e=>{
-   e.preventDefault();
-   fn(false);
-  });
- });
-}
-bind('up',v=>mobile.forward=v?1:0);
-bind('down',v=>mobile.forward=v?-1:0);
-bind('left',v=>mobile.turn=v?1:0);
-bind('right',v=>mobile.turn=v?-1:0);
-
-document.getElementById('jump').addEventListener('pointerdown',e=>{
- e.preventDefault();
- if(onGround&&started){velY=6;onGround=false}
-});
-
-document.getElementById('play').onclick=()=>{
- started=true;
- startTime=performance.now()*.001;
- lastSecond=Math.floor(startTime);
- document.getElementById('start').style.display='none';
-};
-
-document.getElementById('throw').onclick=throwBanana;
-
-let drag=null;
-renderer.domElement.addEventListener('pointerdown',e=>{
- drag={x:e.clientX,y:e.clientY};
- renderer.domElement.setPointerCapture?.(e.pointerId);
-});
-renderer.domElement.addEventListener('pointermove',e=>{
- if(drag&&started&&e.pointerType==='touch'){
-  yaw-=(e.clientX-drag.x)*.006;
-  drag={x:e.clientX,y:e.clientY};
- }
-});
-renderer.domElement.addEventListener('pointerup',()=>drag=null);
-renderer.domElement.addEventListener('pointercancel',()=>drag=null);
 
 addEventListener('resize',()=>{
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
 });
-
-updateScore();
 })();
 </script>
 </body>
